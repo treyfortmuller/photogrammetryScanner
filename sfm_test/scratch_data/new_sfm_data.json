@@ -1,0 +1,261 @@
+{
+    "intrinsics": [
+        {
+            "key": 0, 
+            "value": {
+                "ptr_wrapper": {
+                    "data": {
+                        "width": 640, 
+                        "principal_point": [
+                            320.0, 
+                            240.0
+                        ], 
+                        "disto_k3": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "focal_length": 500.0, 
+                        "height": 480
+                    }, 
+                    "id": 2147483654
+                }, 
+                "polymorphic_name": "pinhole_radial_k3", 
+                "polymorphic_id": 2147483649
+            }
+        }
+    ], 
+    "views": [
+        {
+            "key": 0, 
+            "value": {
+                "ptr_wrapper": {
+                    "data": {
+                        "filename": "im1.jpg", 
+                        "height": 480, 
+                        "width": 640, 
+                        "local_path": "", 
+                        "id_view": 0, 
+                        "id_intrinsic": 0, 
+                        "id_pose": 0
+                    }, 
+                    "id": 2147483649
+                }, 
+                "polymorphic_id": 1073741824
+            }
+        }, 
+        {
+            "key": 1, 
+            "value": {
+                "ptr_wrapper": {
+                    "data": {
+                        "filename": "im2.jpg", 
+                        "height": 480, 
+                        "width": 640, 
+                        "local_path": "", 
+                        "id_view": 1, 
+                        "id_intrinsic": 0, 
+                        "id_pose": 1
+                    }, 
+                    "id": 2147483650
+                }, 
+                "polymorphic_id": 1073741824
+            }
+        }, 
+        {
+            "key": 2, 
+            "value": {
+                "ptr_wrapper": {
+                    "data": {
+                        "filename": "im3.jpg", 
+                        "height": 480, 
+                        "width": 640, 
+                        "local_path": "", 
+                        "id_view": 2, 
+                        "id_intrinsic": 0, 
+                        "id_pose": 2
+                    }, 
+                    "id": 2147483651
+                }, 
+                "polymorphic_id": 1073741824
+            }
+        }, 
+        {
+            "key": 3, 
+            "value": {
+                "ptr_wrapper": {
+                    "data": {
+                        "filename": "im4.jpg", 
+                        "height": 480, 
+                        "width": 640, 
+                        "local_path": "", 
+                        "id_view": 3, 
+                        "id_intrinsic": 0, 
+                        "id_pose": 3
+                    }, 
+                    "id": 2147483652
+                }, 
+                "polymorphic_id": 1073741824
+            }
+        }, 
+        {
+            "key": 4, 
+            "value": {
+                "ptr_wrapper": {
+                    "data": {
+                        "filename": "im5.jpg", 
+                        "height": 480, 
+                        "width": 640, 
+                        "local_path": "", 
+                        "id_view": 4, 
+                        "id_intrinsic": 0, 
+                        "id_pose": 4
+                    }, 
+                    "id": 2147483653
+                }, 
+                "polymorphic_id": 1073741824
+            }
+        }
+    ], 
+    "root_path": "/home/trey.fortmuller/Desktop/sfm/SfM_test/sfm_in", 
+    "extrinsics": [
+        {
+            "value": {
+                "rotation": [
+                    [
+                        0.8660254037844386, 
+                        -0.5000000000000001, 
+                        0.0
+                    ], 
+                    [
+                        0.0, 
+                        0.0, 
+                        -1.0
+                    ], 
+                    [
+                        0.5000000000000001, 
+                        0.8660254037844386, 
+                        0.0
+                    ]
+                ], 
+                "center": [
+                    9.000000000000002, 
+                    15.588457268119894, 
+                    0.0
+                ]
+            }, 
+            "key": 0
+        }, 
+        {
+            "value": {
+                "rotation": [
+                    [
+                        0.9659258262890683, 
+                        -0.25881904510252074, 
+                        0.0
+                    ], 
+                    [
+                        0.0, 
+                        0.0, 
+                        -1.0
+                    ], 
+                    [
+                        0.25881904510252074, 
+                        0.9659258262890683, 
+                        0.0
+                    ]
+                ], 
+                "center": [
+                    4.658742811845373, 
+                    17.38666487320323, 
+                    0.0
+                ]
+            }, 
+            "key": 1
+        }, 
+        {
+            "value": {
+                "rotation": [
+                    [
+                        1.0, 
+                        -6.123233995736766e-17, 
+                        0.0
+                    ], 
+                    [
+                        0.0, 
+                        0.0, 
+                        -1.0
+                    ], 
+                    [
+                        6.123233995736766e-17, 
+                        1.0, 
+                        0.0
+                    ]
+                ], 
+                "center": [
+                    1.102182119232618e-15, 
+                    18.0, 
+                    0.0
+                ]
+            }, 
+            "key": 2
+        }, 
+        {
+            "value": {
+                "rotation": [
+                    [
+                        0.9659258262890683, 
+                        0.25881904510252085, 
+                        0.0
+                    ], 
+                    [
+                        0.0, 
+                        0.0, 
+                        -1.0
+                    ], 
+                    [
+                        -0.25881904510252085, 
+                        0.9659258262890683, 
+                        0.0
+                    ]
+                ], 
+                "center": [
+                    -4.658742811845375, 
+                    17.38666487320323, 
+                    0.0
+                ]
+            }, 
+            "key": 3
+        }, 
+        {
+            "value": {
+                "rotation": [
+                    [
+                        0.8660254037844387, 
+                        0.4999999999999998, 
+                        0.0
+                    ], 
+                    [
+                        0.0, 
+                        0.0, 
+                        -1.0
+                    ], 
+                    [
+                        -0.4999999999999998, 
+                        0.8660254037844387, 
+                        0.0
+                    ]
+                ], 
+                "center": [
+                    -8.999999999999996, 
+                    15.588457268119896, 
+                    0.0
+                ]
+            }, 
+            "key": 4
+        }
+    ], 
+    "structure": [], 
+    "control_points": [], 
+    "sfm_data_version": "0.3"
+}

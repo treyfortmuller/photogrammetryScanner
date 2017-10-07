@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Link to Using OpenCV with gcc and CMake — OpenCV 3.0.0-dev documentation
+Type=Link
+URL=http://docs.opencv.org/3.0-last-rst/doc/tutorials/introduction/linux_gcc_cmake/linux_gcc_cmake.html#linux-gcc-usage
+Icon=text-html
+Name[en_US]=using_ocv_cmake
