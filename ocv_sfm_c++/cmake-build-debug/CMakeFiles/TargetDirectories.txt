@@ -1,3 +1,0 @@
-/home/trey.fortmuller/CLionProjects/mirror_pivot_sfm/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/trey.fortmuller/CLionProjects/mirror_pivot_sfm/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/trey.fortmuller/CLionProjects/mirror_pivot_sfm/cmake-build-debug/CMakeFiles/mirror_pivot_sfm.dir
