@@ -34,7 +34,7 @@ void clockWise() { // turn the turn table motor CW
 
 // Now we'll wrap the 3 steppers in an AccelStepper object
 AccelStepper accelElevatorMotor(down, up);
-AccelStepper accelTurnTableMotor(countClockWise, clockWise);
+AccelStepper accelTurnTableMotor(counterClockWise, clockWise);
 
 // helper functions to dimensional analysis
 int heightToSteps(int height) {
@@ -55,26 +55,26 @@ int degToSteps(int deg) {
 
 // move functions for elevator motor
 void moveUp(int height) {
-  steps = heightToSteps(height);
+  int steps = heightToSteps(height);
   accelElevatorMotor.moveTo(steps);
   accelElevatorMotor.run();
 }
 
-void moveUp(int height) {
-  steps = heightToSteps(height);
+void movedown(int height) {
+  int steps = heightToSteps(height);
   accelElevatorMotor.moveTo(steps);
   accelElevatorMotor.run();
 }
 
 // move functions for turn table motor
 void moveCCW(int deg) {
-  steps = degToSteps(deg);
+  int steps = degToSteps(deg);
   accelTurnTableMotor.moveTo(steps);
   accelTurnTableMotor.run(); 
 }
 
 void moveCW(int deg) {
-  steps = degToSteps(deg);
+  int steps = degToSteps(deg);
   accelTurnTableMotor.moveTo(accelTurnTableMotor.currentPosition() + 100);
   accelTurnTableMotor.run(); 
 }
