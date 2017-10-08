@@ -119,13 +119,13 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 		### Add arduino call back message for debugging
 
 
-	### List of rotation matrices for pose and orientation
-	rotations = []
+	# ### List of rotation matrices for pose and orientation
+	# rotations = []
 
-	### matrix of height axis transformation
-	height = np.array([[0, 0, 0],
-					   [0, 0, 0],
-					   [0, 0, 1]])
+	# ### matrix of height axis transformation
+	# height = np.array([[0, 0, 0],
+	# 				   [0, 0, 0],
+	# 				   [0, 0, 1]])
 
 	print("ROS & SERIAL UP: Beginning Iterations ")
 	for i in range(iterations):
@@ -139,12 +139,12 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 		time.sleep(wait_stepper)
 
 
-		###Get rotation matrix in XY plane, and then add height translation
-		new_state = rot_matrix(deg_to_rad(theta), "Rz") + i*translation*height 
+		# ###Get rotation matrix in XY plane, and then add height translation
+		# new_state = rot_matrix(deg_to_rad(theta), "Rz") + i*translation*height 
 
-		###Appending each rotation matrix for extrinsics
+		# ###Appending each rotation matrix for extrinsics
 
-		rotations.append(new_state)
+		# rotations.append(new_state)
 
 
 
@@ -186,7 +186,7 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 
 	rospy.signal_shutdown("End")
 	update.join()
-	return rotations
+	# return rotations
 
 
 
