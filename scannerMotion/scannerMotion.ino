@@ -114,11 +114,11 @@ void loop(void) {
 
     // add it to the inputString
     inputString += inChar;
-    Serial.print(inputString);
     
     // if the incoming character is a newline, set a flag, we have a new command completed
     if (inChar == '\n') {
       stringComplete = true;
+      Serial.println(inputString)
     }
   }
 }
