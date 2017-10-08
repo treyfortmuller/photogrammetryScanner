@@ -15,5 +15,6 @@ void loop() {
     // read the incoming byte:
     char inChar = (char)Serial.read();
     Serial.print(inChar);
+    Serial.write(inChar);
   }
 }
