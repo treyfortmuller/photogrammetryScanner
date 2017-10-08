@@ -92,7 +92,7 @@ void loop(void) {
 
   if (stringComplete) {
 
-    output = inputString.toInt();
+    output += inputString.toInt();
     if (which == true) { // if its stepper motor for elevator
       moveElevator(output);
     }
@@ -114,11 +114,16 @@ void loop(void) {
 
     // add it to the inputString
     inputString += inChar;
-    Serial.print(inputString);
     
     // if the incoming character is a newline, set a flag, we have a new command completed
     if (inChar == '\n') {
       stringComplete = true;
+      if (which) {
+        Serial.println("Vertical");
+      } else {
+        Serial.println("Turn Table");
+      }
+      Serial.print(inputString);
     }
   }
 }
