@@ -97,46 +97,30 @@ void setup(void) {
   
 }
 
+
+
+boolean which = true; //Flipping variable for either turntable or camera
+boolean stringComplete;
+String inputString = "";
+int deg = 0;
+
 void loop(void) {
 
   if (stringComplete) {
 
     deg = inputString.toInt();
-
-    if (deg > 170 || deg < 20) {
-      Serial.println("invalid value for this servo! Operational range is [20. 170] for some reason.");
-      Serial.print("writing value: ");
-
-    }
-    else {
-      if (deg >= currentPos) {
-        Serial.print("writing value: ");
-        Serial.println(deg);
-  
-        for (servoStep = currentPos + 1; servoStep <= deg; servoStep += 1) {
-            theServo.write(servoStep);  // sets the servo position according to the deg value received from serial
-            delay(15);
-            Serial.println("moving up");
-        }
-        currentPos = deg;  
+    if (which == true) { //if its stepper motor for camera
+      moveUp(deg);
       }
-      else {
-        Serial.print("writing value: ");
-        Serial.println(deg);
-  
-        for (servoStep = currentPos - 1; servoStep >= deg; servoStep -= 1) {
-            theServo.write(servoStep);  // sets the servo position according to the deg value received from serial
-            delay(15);
-            Serial.println("moving down");
-        }
-        currentPos = deg;  
+    if (which != true) { //if its stepper motor for turntable
+      moveCW(deg);
       }
-    }
+    
 
+    //Reassign string for next iteration
+    which = !which;
     inputString = "";
     stringComplete = false;
-    Serial.print("Current value: ");
-    Serial.println(currentPos);
   }
 
   // send data only when you receive data:
