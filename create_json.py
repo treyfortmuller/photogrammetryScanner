@@ -1,6 +1,33 @@
 import numpy as np
 import json
+import os
+import subprocess
 
+
+# OPENMVG CONSTANTS
+# indicate the openMVG binary directory
+OPENMVG_SFM_BIN = "/home/trey.fortmuller/openMVG_Build/Linux-x86_64-RELEASE"
+
+# indicate the the camera sensor width database directory,
+# must be included as a required param of the ImageListing, not used by our algo with defined intrinsics
+CAMERA_SENSOR_WIDTH_DIRECTORY = "/home/trey.fortmuller/openMVG/src/openMVG/exif/sensor_width_database"
+
+# PROJECT CONSTANTS
+# indicate the project directory, the directory where the python scripts reside
+PROJECT_DIR = input_eval_dir = os.path.dirname(os.path.abspath(__file__))
+
+# define a directory to indicate the name's of our directories in our file structure relative to project directory
+file_struct = {"input": "/sfm_in",
+               "output": "/sfm_out",
+               "matches": "/sfm_out/sfm_matches",
+               "reconstruction": "/sfm_out/sfm_reconstruction"}
+
+# define all the relevant directories
+input_dir = PROJECT_DIR + file_struct["input"]
+output_dir = PROJECT_DIR + file_struct["output"]
+matches_dir = PROJECT_DIR + file_struct["matches"]
+reconstruction_dir = PROJECT_DIR + file_struct["reconstruction"]
+camera_file_params = CAMERA_SENSOR_WIDTH_DIRECTORY + "/sensor_width_camera_database.txt"
 
 
 def deg_to_rad(deg):
@@ -28,6 +55,23 @@ def rot_matrix(theta, axis):
                			[0, 0, 1]])
 		return Rz
 
+def package_data(center, rotation, num_frames):
+    # package the extrinsics information in the proper json form that openMVG takes for extrinsics data in sfm_data.json
+    extrinsics_data = []
+    for i in np.arange(num_frames):
+
+        # the json module only likes lists not numpy arrays so we change them
+        ith_rot_mtx = rotation[i].tolist()  # change the ith rotation matrix from a np array to a python list
+        ith_center = center[i].tolist()  # change the ith center coords from a np array to a python list
+
+        # this is the weird form factor the data should take for openMVG
+        extrinsics_data.append({"key": i, "value": {"rotation": ith_rot_mtx, "center": ith_center}})
+
+    return extrinsics_data
+
+### absolute file path to sfm_data.json file
+json_file_path = '/Users/trey/Desktop/sfm_data.json'
+
 
 ### Iteration 0 vectors
 R = np.array([[306], [60], [35.0428]]) ### Original vector corresponding to the right camera
@@ -44,30 +88,51 @@ img_num = 5
 ### List of rotation matrices for pose and orientation
 rotations = []
 ### List of transformed coordinates
-coordinates = []
+all_coordinates = []
 
 ### matrix of height axis transformation
 height = np.array([[0, 0, 0],
 				   [0, 0, 0],
-				   [0, 0, 1]])
+				   [0, 0, del_height]])
+
+
+# first we create an sfm_data.json file establishing our views and spit it out to sfm_matches,
+# utilizing "-k", "350;0;240;0;350;360;0;0;1"
+# if we know exactly how long the pivot takes then we can eliminate this and always use the same sfm_data.json file
+print("INIT IMAGE LISTING")  # http://openmvg.readthedocs.io/en/latest/software/SfM/SfMInit_ImageListing/
+pIntrisics = subprocess.Popen([os.path.join(OPENMVG_SFM_BIN, "openMVG_main_SfMInit_ImageListing"),
+                               "-i", input_dir,
+                               "-o", matches_dir,
+                               "-d", camera_file_params,
+                               # intrinsics camera calib goes here in the form of a K matrix deconstructed row-wise
+                               # focal, 0, pp_x, 0, focal, pp_y, 0, 0, 1
+                               # 18mm focal length with a 4.68 micron pixel to get focal length in pixels
+                               "-k", "3846.154; 0; 2542; 0; 250; 3846.154; 0; 0; 1"])
+pIntrisics.wait()
 
 for i in range(img_num):
+	height[2][2] = i*height[2][2]
+	new_state = rot_matrix(deg_to_rad(theta*i), "Rz") + height
 
-	new_state = rot_matrix(deg_to_rad(theta*i), "Rz") + i*del_height*height
 
+	rotations.append(rot_matrix(deg_to_rad(theta*i), "Rz"))
+	rotations.append(rot_matrix(deg_to_rad(theta*i), "Rz"))
 
-	rotations.append(new_state)
 
 	R = np.matmul(new_state, R)
 	L = np.matmul(new_state, L)
-	coordinates.append([R, L])
+	all_coordinates.append(R)
+	all_coordinates.append(L)
 
-print("rotations")
-print(rotations)
-print("coordinates")
-print(coordinates)
+print(all_coordinates)
 
+# write the data to the json file
+with open(json_file_path, 'r') as json_file:
+    json_data = json.load(json_file)
+    json_data['extrinsics'] = package_data(all_coordinates, rotations, 2*img_num)
 
+with open(json_file_path, 'w') as json_file:
+    json_file.write(json.dumps(json_data, indent=4))
 
 
 
