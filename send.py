@@ -44,21 +44,13 @@ def rot_matrix(theta, axis):
 
 
 
-def arduino_message(rotation, translation, wait_time):
-	###Turntable change
-	ser.write(rotation)
-	time.sleep(wait_time)
-
-	###Camera height change
-	ser.write(translation)
-	time.sleep(wait_time)
-	### Add arduino call back message for debugging
 
 
 
-###calculates new rotation states, changes arduino stepper motor
+
+### calculates new rotation states, changes arduino stepper motor
 ###
-###PARAMATERS:
+### PARAMATERS:
 ###				iterations - number of images
 ###				angle - rotation of camera pose/rotation of turntable
 ###				translation - change in height of camera
@@ -66,7 +58,7 @@ def arduino_message(rotation, translation, wait_time):
 ###				frame_path - frame destination
 ###				dest_path - path destination
 ###
-###RETURNS -  Rotation matrices for extrinsics
+### RETURNS -  Rotation matrices for extrinsics
 def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 
 	ser = serial.Serial('/dev/ttyACM0', 9600)  # open serial communication at 9600 baud to the arduino
@@ -74,8 +66,21 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 	time.sleep(7)  # wait for initialization of the serial communication to Arduino
 
 
+
+	def arduino_message(rotation, translation, wait_time):
+		### Turntable change
+		ser.write(rotation)
+		time.sleep(wait_time)
+
+		### Camera height change
+		ser.write(translation)
+		time.sleep(wait_time)
+		### Add arduino call back message for debugging
+
+
+
 	### List of rotation matrices for pose and orientation
-	rotations = np.array([])
+	rotations = []
 
 	### matrix of height axis transformation
 	height = np.array([[0, 0, 0],
@@ -95,7 +100,7 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 		new_state = rot_matrix(deg_to_rad(theta), "Rz") + i*translation*height 
 
 		###Appending each rotation matrix for extrinsics
-		rotations.append(rotations, new_state)
+		rotations.append(new_state)
 
 
 
