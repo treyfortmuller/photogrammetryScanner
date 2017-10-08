@@ -134,6 +134,14 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 
 		###message sent to arduino stepper motor; rotates turntable and adjust camera height
 		###send negative of angle because of turntable design
+
+		#capture current image
+		if currRight is None or currLeft is None:
+			print("--> Some pictures missing - skipping save on iteration %d" % i)
+		else:
+			cv2.imwrite(os.path.join(image_path, "imm%d_left.jpg" % i), currLeft)
+			cv2.imwrite(os.path.join(image_path, "imm%d_right.jpg" % i), currRight)
+		
 		arduino_message(angle, translation, wait_time)
 
 		time.sleep(wait_stepper)
@@ -152,12 +160,7 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 		###ROS CODE HERE###
 		####################
 		
-		#capture current image
-		if currRight is None or currLeft is None:
-			print("--> Some pictures missing - skipping save on iteration %d" % i)
-		else:
-			cv2.imwrite(os.path.join(image_path, "imm%d_left.jpg" % i), currLeft)
-			cv2.imwrite(os.path.join(image_path, "imm%d_right.jpg" % i), currRight)
+
 
 
 		###CV code taken from trey's Faraday Future's python script

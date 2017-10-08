@@ -6,21 +6,22 @@ import subprocess
 
 # OPENMVG CONSTANTS
 # indicate the openMVG binary directory
-OPENMVG_SFM_BIN = "/home/trey.fortmuller/openMVG_Build/Linux-x86_64-RELEASE"
-
+OPENMVG_SFM_BIN = "/home/greg/openMVG_Build/Linux-x86_64-RELEASE"
+OPENMVS_SFM_BIN = "/home/greg/openMVS_build/bin"
 # indicate the the camera sensor width database directory,
 # must be included as a required param of the ImageListing, not used by our algo with defined intrinsics
-CAMERA_SENSOR_WIDTH_DIRECTORY = "/home/trey.fortmuller/openMVG/src/openMVG/exif/sensor_width_database"
+CAMERA_SENSOR_WIDTH_DIRECTORY = '/home/greg/openMVG/src/openMVG/exif/sensor_width_database'
+
 
 # PROJECT CONSTANTS
 # indicate the project directory, the directory where the python scripts reside
 PROJECT_DIR = input_eval_dir = os.path.dirname(os.path.abspath(__file__))
 
 # define a directory to indicate the name's of our directories in our file structure relative to project directory
-file_struct = {"input": "/sfm_in",
-               "output": "/sfm_out",
-               "matches": "/sfm_out/sfm_matches",
-               "reconstruction": "/sfm_out/sfm_reconstruction"}
+file_struct = {"input": "/input",
+               "output": "/output",
+               "matches": "/output/matches",
+               "reconstruction": "/sfm_out/reconstruction"}
 
 # define all the relevant directories
 input_dir = PROJECT_DIR + file_struct["input"]
@@ -62,7 +63,7 @@ def package_data(center, rotation, num_frames):
 
         # the json module only likes lists not numpy arrays so we change them
         ith_rot_mtx = rotation[i].tolist()  # change the ith rotation matrix from a np array to a python list
-        ith_center = center[i].tolist()  # change the ith center coords from a np array to a python list
+        ith_center = [center[i].tolist()[0][0], center[i].tolist()[1][0], center[i].tolist()[2][0]]  # change the ith center coords from a np array to a python list
 
         # this is the weird form factor the data should take for openMVG
         extrinsics_data.append({"key": i, "value": {"rotation": ith_rot_mtx, "center": ith_center}})
@@ -70,20 +71,21 @@ def package_data(center, rotation, num_frames):
     return extrinsics_data
 
 ### absolute file path to sfm_data.json file
-json_file_path = '/Users/trey/Desktop/sfm_data.json'
+json_file_path = '/home/greg/greg/output/matches/sfm_data.json'
 
 
 ### Iteration 0 vectors
-R = np.array([[306], [60], [35.0428]]) ### Original vector corresponding to the right camera
-L = np.array([[306], [-60], [35.0428]]) ### Original vector corresponding to the right camera
+# R = np.array([[306], [60], [35.0428]]) ### Original vector corresponding to the right camera
+# L = np.array([[306], [-60], [35.0428]]) ### Original vector corresponding to the right camera
 
 
 ###Rotation parameters
 theta = 30
-del_height = 5 ##5mm ###for changing scaling, adjust code in arduino stepper file
-img_num = 5
+del_height = 15 ##5mm ###for changing scaling, adjust code in arduino stepper file
+img_num = 20
 ### 
 
+RADIUS = 306
 
 ### List of rotation matrices for pose and orientation
 rotations = []
@@ -93,7 +95,7 @@ all_coordinates = []
 ### matrix of height axis transformation
 height = np.array([[0, 0, 0],
 				   [0, 0, 0],
-				   [0, 0, del_height]])
+				   [0, 0, 0]])
 
 
 # first we create an sfm_data.json file establishing our views and spit it out to sfm_matches,
@@ -107,22 +109,37 @@ pIntrisics = subprocess.Popen([os.path.join(OPENMVG_SFM_BIN, "openMVG_main_SfMIn
                                # intrinsics camera calib goes here in the form of a K matrix deconstructed row-wise
                                # focal, 0, pp_x, 0, focal, pp_y, 0, 0, 1
                                # 18mm focal length with a 4.68 micron pixel to get focal length in pixels
-                               "-k", "3846.154; 0; 2542; 0; 250; 3846.154; 0; 0; 1"])
+                               "-k", "699.34; 0; 661.28; 0; 699.34; 333.51; 0; 0; 1"])
+
 pIntrisics.wait()
 
 for i in range(img_num):
-	height[2][2] = i*height[2][2]
-	new_state = rot_matrix(deg_to_rad(theta*i), "Rz") + height
+	# height[2][2] += del_height
+	# new_state = rot_matrix(deg_to_rad(theta), "Rz")
+
+  c_x = RADIUS * np.cos(i * theta)
+  c_y = - RADIUS * np.sin(i * theta)
+
+  l_x = c_x - 60 * np.sin(i * theta)
+  l_y = c_y - 60 * np.cos(i * theta)
+  r_x = c_x + 60 * np.sin(i * theta)
+  r_y = c_y + 60 * np.cos(i * theta)
+
+  L = np.array([[l_x], [l_y], [i * del_height]])
+  R = np.array([[r_x], [r_y], [i * del_height]])
+
+  rotations.append(rot_matrix(deg_to_rad(theta), "Rz"))
+  rotations.append(rot_matrix(deg_to_rad(theta), "Rz"))
 
 
-	rotations.append(rot_matrix(deg_to_rad(theta*i), "Rz"))
-	rotations.append(rot_matrix(deg_to_rad(theta*i), "Rz"))
+  # R = np.matmul(new_state, R)
+  # L = np.matmul(new_state, L)
+  all_coordinates.append(L)
+  all_coordinates.append(R)
 
 
-	R = np.matmul(new_state, R)
-	L = np.matmul(new_state, L)
-	all_coordinates.append(R)
-	all_coordinates.append(L)
+
+
 
 print(all_coordinates)
 
