@@ -1,4 +1,4 @@
-/*
+/* Greg the 3D Scanner -- Trey Fortmuller, Nathan Le, Suneel Belkhale
  * Operate two stepper motors using the adafruit V2 motor shield for Arduino to elevate the camera and turn the turntable based on serial commands
  * Using NEMA-17 stepper motors with 200 steps/rev
  */
@@ -11,8 +11,13 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
 // Connect two steppers with 200 steps per revolution (1.8 degree)
-Adafruit_StepperMotor *elevatorMotor = AFMS.getStepper(200, 1);
-Adafruit_StepperMotor *turnTableMotor = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *elevatorMotor = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *turnTableMotor = AFMS.getStepper(200, 1);
+
+boolean which = false; // flipping variable for either turntable or camera, true is elevator, false is turntable
+boolean stringComplete;
+String inputString = "";
+int output = 0;
 
 // you can change these to SINGLE, DOUBLE or INTERLEAVE or MICROSTEP
 
@@ -32,16 +37,16 @@ void clockWise() { // turn the turn table motor CW
   turnTableMotor->onestep(BACKWARD, SINGLE);
 }
 
-// Now we'll wrap the 3 steppers in an AccelStepper object
+// Now we'll wrap both steppers in an AccelStepper object
 AccelStepper accelElevatorMotor(down, up);
 AccelStepper accelTurnTableMotor(counterClockWise, clockWise);
 
-// helper functions to dimensional analysis
+// helper functions for dimensional analysis
 int heightToSteps(int height) {
   // output how many steps to rotate given a height in mm we need to travel
   // this multiplier is a function of both the stepper motor and leadscrew
   // the stepper motor is 200 steps/rev and the leadscrew travels 8mm/rev
-  int steps = height*(200/8);
+  int steps = height*(200.0/8.0);
   return steps;
 }
 
@@ -49,38 +54,21 @@ int degToSteps(int deg) {
   // output how many steps to rotate given an angle to rotate through in deg
   // this multiplier is a function of the stepper motor
   // the stepper motor is 200 steps/rev
-  int steps = deg*(200/360);
+  int steps = deg*(200.0/360.0);
   return steps;
 }
 
 // move functions for elevator motor
-void moveUp(int height) {
+void moveElevator(int height) {
   int steps = heightToSteps(height);
-  accelElevatorMotor.moveTo(steps);
-  accelElevatorMotor.run();
-}
-
-void movedown(int height) {
-  int steps = heightToSteps(height);
-  accelElevatorMotor.moveTo(steps);
-  accelElevatorMotor.run();
+  accelElevatorMotor.moveTo(-steps);
 }
 
 // move functions for turn table motor
-void moveCCW(int deg) {
+void moveTurnTable(int deg) {
   int steps = degToSteps(deg);
   accelTurnTableMotor.moveTo(steps);
-  accelTurnTableMotor.run(); 
 }
-
-void moveCW(int deg) {
-  int steps = degToSteps(deg);
-  accelTurnTableMotor.moveTo(accelTurnTableMotor.currentPosition() + 100);
-  accelTurnTableMotor.run(); 
-}
-
-
-
 
 void setup(void) {
   AFMS.begin(); // start the motor shield
@@ -96,34 +84,29 @@ void setup(void) {
   Serial.begin(9600);
   
 }
-
-
-
-boolean which = true; //Flipping variable for either turntable or camera
-boolean stringComplete;
-String inputString = "";
-int deg = 0;
-
 void loop(void) {
+
+  // continually "run" each motor, steps are only commanded if the current setpoint has not been achieved.
+  accelTurnTableMotor.run(); 
+  accelElevatorMotor.run();
 
   if (stringComplete) {
 
-    deg = inputString.toInt();
-    if (which == true) { //if its stepper motor for camera
-      moveUp(deg);
-      }
-    if (which != true) { //if its stepper motor for turntable
-      moveCW(deg);
-      }
+    output = inputString.toInt();
+    if (which == true) { // if its stepper motor for elevator
+      moveElevator(output);
+    }
+    if (which != true) { // if its stepper motor for turntable
+      moveTurnTable(output);
+    }
     
-
     //Reassign string for next iteration
     which = !which;
     inputString = "";
     stringComplete = false;
   }
 
-  // send data only when you receive data:
+  // recieve incoming messages from the serial port
   if (Serial.available() > 0) {
     
     // read the incoming byte:
@@ -131,12 +114,12 @@ void loop(void) {
 
     // add it to the inputString
     inputString += inChar;
+    Serial.print(inputString);
     
-    // if the incoming character is a newline, set a flag, we have a voltage (pwm) command
+    // if the incoming character is a newline, set a flag, we have a new command completed
     if (inChar == '\n') {
       stringComplete = true;
     }
   }
-
 }
 
