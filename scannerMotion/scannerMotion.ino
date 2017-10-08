@@ -79,6 +79,9 @@ void moveCW(int deg) {
   accelTurnTableMotor.run(); 
 }
 
+
+
+
 void setup(void) {
   AFMS.begin(); // start the motor shield
 
@@ -91,12 +94,6 @@ void setup(void) {
 
   // initialize serial at 9600 baud to communicate with the controlling python script
   Serial.begin(9600);
-
-  // attaches the servo on pin 9 to the servo object 
-  theServo.attach(9);
-
-  // reset the servo to the start position (INSTANTANEOUS MOVE)
-  theServo.write(deg);
   
 }
 
