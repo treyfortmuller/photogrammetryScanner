@@ -1,3 +1,6 @@
+#include <AccelStepper.h>
+#include <MultiStepper.h>
+
 /* Greg the 3D Scanner -- Trey Fortmuller, Nathan Le, Suneel Belkhale
  * Operate two stepper motors using the adafruit V2 motor shield for Arduino to elevate the camera and turn the turntable based on serial commands
  * Using NEMA-17 stepper motors with 200 steps/rev
@@ -17,7 +20,8 @@ Adafruit_StepperMotor *turnTableMotor = AFMS.getStepper(200, 1);
 boolean which = false; // flipping variable for either turntable or camera, true is elevator, false is turntable
 boolean stringComplete;
 String inputString = "";
-int output = 0;
+int theta_output = 0;
+int z_output = 0;
 
 // you can change these to SINGLE, DOUBLE or INTERLEAVE or MICROSTEP
 
@@ -40,6 +44,8 @@ void clockWise() { // turn the turn table motor CW
 // Now we'll wrap both steppers in an AccelStepper object
 AccelStepper accelElevatorMotor(down, up);
 AccelStepper accelTurnTableMotor(counterClockWise, clockWise);
+bool elevatorRun = true;
+bool turnTableRun = true;
 
 // helper functions for dimensional analysis
 int heightToSteps(int height) {
@@ -84,6 +90,7 @@ void setup(void) {
   Serial.begin(9600);
   
 }
+
 void loop(void) {
 
   // continually "run" each motor, steps are only commanded if the current setpoint has not been achieved.
@@ -91,13 +98,18 @@ void loop(void) {
   accelElevatorMotor.run();
 
   if (stringComplete) {
-
-    output = inputString.toInt();
+    
     if (which == true) { // if its stepper motor for elevator
-      moveElevator(output);
+      Serial.println("Vertical");
+      z_output += inputString.toInt();
+      moveElevator(z_output);
+      Serial.println("New Setpoint: " + String(z_output));
     }
-    if (which != true) { // if its stepper motor for turntable
-      moveTurnTable(output);
+    else { // if its stepper motor for turntable
+      Serial.println("Turn Table");
+      theta_output += inputString.toInt();
+      moveTurnTable(theta_output);
+      Serial.println("New Setpoint: " + String(theta_output));
     }
     
     //Reassign string for next iteration
@@ -105,6 +117,47 @@ void loop(void) {
     inputString = "";
     stringComplete = false;
   }
+
+//  if (!accelTurnTableMotor.isRunning()) {
+//    // if the motor is not running, turn it off
+//    Serial.println("Disabling accelTurnTableMotor");
+//    accelTurnTableMotor.disableOutputs();
+//  }
+//  if (!accelElevatorMotor.isRunning()) {
+//    // if the motor is not running, turn it off
+//    Serial.println("Disabling accelElevatorMotor");
+//    accelElevatorMotor.disableOutputs();
+//  }
+  bool elNow = accelElevatorMotor.isRunning();
+  bool ttNow = accelTurnTableMotor.isRunning();
+
+  
+//  if (elevatorRun && !elNow) {
+//    // elevator turned off
+//    Serial.println("Disabling accelElevatorMotor");
+//    elevatorMotor->release();
+//  } 
+//  else if (!elevatorRun && elNow) {
+//    //elevator turned on
+//    Serial.println("Enabling accelElevatorMotor");
+//    accelElevatorMotor.enableOutputs();
+//  }
+
+  
+//  if (turnTableRun && !ttNow) {
+//    // turn table turned off
+//    Serial.println("Disabling accelTurnTableMotor");
+//    turnTableMotor->release();
+//  } 
+//  else if (!turnTableRun && ttNow) {
+//    # turn table turned on
+//    Serial.println("Enabling accelTurnTableMotor");
+//    accelTurnTableMotor.enableOutputs();
+//  }
+  
+
+  elevatorRun = elNow;
+  turnTableRun = ttNow;
 
   // recieve incoming messages from the serial port
   if (Serial.available() > 0) {
@@ -117,8 +170,16 @@ void loop(void) {
     
     // if the incoming character is a newline, set a flag, we have a new command completed
     if (inChar == '\n') {
-      stringComplete = true;
-      Serial.println(inputString)
+      if (inputString == "release\n"){
+        // special case
+        Serial.println("-- Releasing All --");
+        elevatorMotor->release();
+        turnTableMotor->release();
+        inputString = "";
+      } else {
+        stringComplete = true;
+      }
+      
     }
   }
 }
