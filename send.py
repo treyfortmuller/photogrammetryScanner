@@ -8,6 +8,7 @@ import cv2
 import rospy
 import message_filters
 from sensor_msgs.msg import Image, CameraInfo
+from cv_bridge import CvBridge, CvBridgeError
 
 from threading import Thread
 
@@ -50,9 +51,24 @@ def update_ros():
 	rospy.spin()
 
 
+currLeft = None
+currRight = None
+
 def image_callback(left, left_info, right, right_info):
 	# print('IMAGE RECEIVED!!!')
-	pass
+	bridge = CvBridge()
+	global currLeft
+	global currRight
+	try:
+		currLeft = bridge.imgmsg_to_cv2(left, "bgr8")
+		currRight = bridge.imgmsg_to_cv2(right, "bgr8")
+
+		# out = cv2.cvtColor(currLeft, cv2.COLOR_BGR2GRAY)
+		# cv2.imshow("Left Image", currLeft)
+		# cv2.imshow("Right Image", currRight)
+		# cv2.waitKey(1)
+	except CvBridgeError as e:
+		print(e)
 
 ### calculates new rotation states, changes arduino stepper motor
 ###
@@ -65,10 +81,14 @@ def image_callback(left, left_info, right, right_info):
 ###				dest_path - path destination
 ###
 ### RETURNS -  Rotation matrices for extrinsics
-def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
+def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, dest_path):
 
 
 	rospy.init_node('ArduinoTalker', anonymous=True)
+
+	# cv2.startWindowThread()
+	# cv2.namedWindow("Left Image", cv2.WINDOW_NORMAL)
+	# cv2.namedWindow("Right Image", cv2.WINDOW_NORMAL)
 
 	##ROS##
 	left_cam = message_filters.Subscriber('/zed/left/image_raw_color', Image)
@@ -90,25 +110,13 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 
 	def arduino_message(rotation, translation, wait_time):
 		###Turntable change
-		ser.write(str(rotation))
+		ser.write(str(rotation) + "\n")
 		time.sleep(wait_time)
 
 		###Camera height change
-		ser.write(str(translation))
+		ser.write(str(translation) + "\n")
 		time.sleep(wait_time)
 		### Add arduino call back message for debugging
-
-
-	def arduino_message(rotation, translation, wait_time):
-		### Turntable change
-		ser.write(rotation)
-		time.sleep(wait_time)
-
-		### Camera height change
-		ser.write(translation)
-		time.sleep(wait_time)
-		### Add arduino call back message for debugging
-
 
 
 	### List of rotation matrices for pose and orientation
@@ -128,6 +136,7 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 		###send negative of angle because of turntable design
 		arduino_message(-angle, translation, wait_time)
 
+		time.sleep(wait_stepper)
 
 
 		###Get rotation matrix in XY plane, and then add height translation
@@ -143,7 +152,12 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 		###ROS CODE HERE###
 		####################
 		
-
+		#capture current image
+		if currRight is None or currLeft is None:
+			print("--> Some pictures missing - skipping save on iteration %d" % i)
+		else:
+			cv2.imwrite(os.path.join(image_path, "imm%d_left.jpg" % i), currLeft)
+			cv2.imwrite(os.path.join(image_path, "imm%d_right.jpg" % i), currRight)
 
 
 		###CV code taken from trey's Faraday Future's python script
@@ -152,7 +166,6 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 		# image_number = "im" + str(i) + ".jpg"
 		# cv2.imwrite(image_number, im1)
 		# camera.release()
-		# os.rename(frame_path + image_number, dest_path + image_number)
 
 
 		#####################
@@ -171,20 +184,20 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 theta = 30
 del_height = 5 ##5mm ###for changing scaling, adjust code in arduino stepper file
 img_num = 5
+### 
 
 
 # CONSTANTS
-move_wait = 2  # seconds to wait for the stepper to turn
-frame_wait = 2  # seconds to wait for the webcam to capture a frame
-iterations = 32
+move_wait = 0.1  # seconds to wait for the stepper to turn
+stepper_wait = 3
+# frame_wait = 2  # seconds to wait for the webcam to capture a frame
+# iterations = 32
 
 ###File input/output destination
-frame_path = '/home/trey.fortmuller/Desktop/sfm/sfm_test/'
-dest_path = '/home/trey.fortmuller/Desktop/sfm/sfm_test/sfm_in/'
-
-
+image_path = '/home/greg/images/'
+dest_path = '/home/greg/images/out/'
 
 
 
 if __name__ == '__main__':
-	greg(img_num, theta, del_height, move_wait, frame_path, dest_path)
+	greg(img_num, theta, del_height, move_wait, stepper_wait, image_path, dest_path)
