@@ -80,11 +80,11 @@ void setup(void) {
   AFMS.begin(); // start the motor shield
 
   // set speed and accel parameters for the stepper motors
-  accelElevatorMotor.setMaxSpeed(200.0); // steps per second
+  accelElevatorMotor.setMaxSpeed(1600.0); // steps per second
   accelElevatorMotor.setAcceleration(400.0); // steps per second^2
     
-  accelTurnTableMotor.setMaxSpeed(200.0); // steps per second
-  accelTurnTableMotor.setAcceleration(400.0); // steps per second^2
+  accelTurnTableMotor.setMaxSpeed(50.0); // steps per second
+  accelTurnTableMotor.setAcceleration(50.0); // steps per second^2
 
   // initialize serial at 9600 baud to communicate with the controlling python script
   Serial.begin(9600);

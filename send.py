@@ -106,11 +106,11 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 
 	ser = serial.Serial('/dev/ttyACM0', 9600)  # open serial communication at 9600 baud to the arduino
 	print("initializing...")
-	time.sleep(7)  # wait for initialization of the serial communication to Arduino
+	time.sleep(5)  # wait for initialization of the serial communication to Arduino
 
 	def arduino_message(rotation, translation, wait_time):
 		###Turntable change
-		ser.write(str(rotation) + "\n")
+		ser.write(str(-rotation) + "\n")
 		time.sleep(wait_time)
 
 		###Camera height change
@@ -134,7 +134,7 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 
 		###message sent to arduino stepper motor; rotates turntable and adjust camera height
 		###send negative of angle because of turntable design
-		arduino_message(-angle, translation, wait_time)
+		arduino_message(angle, translation, wait_time)
 
 		time.sleep(wait_stepper)
 
@@ -171,6 +171,17 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 		#####################
 		#####################
 
+	#we travel iterations * translation up, and iterations * angle % 360 in angle
+	#move back!!
+	if i >= iterations - 1:
+		print("===== MOVING DOWN =====")
+		arduino_message(-(angle * iterations) % 360, - translation * iterations + H_OFFSET, wait_time)
+
+		time.sleep(5)
+
+	#release the stepper motors
+	ser.write("release\n")
+	time.sleep(wait_time)
 	print('Done')
 
 	rospy.signal_shutdown("End")
@@ -181,15 +192,18 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 
 
 ###Rotation parameters
-theta = 30
+theta = 18
 del_height = 5 ##5mm ###for changing scaling, adjust code in arduino stepper file
-img_num = 5
+img_num = 20
 ### 
 
 
 # CONSTANTS
-move_wait = 0.1  # seconds to wait for the stepper to turn
-stepper_wait = 3
+move_wait = 0.03
+# seconds to wait for the stepper to turn
+stepper_wait = 1
+
+H_OFFSET = 2 #mm from base to prevent crashing
 # frame_wait = 2  # seconds to wait for the webcam to capture a frame
 # iterations = 32
 

@@ -1,0 +1,8 @@
+01:05:15 [App     ] Build date: Oct  7 2017, 11:38:22
+01:05:15 [App     ] CPU: Intel(R) Core(TM) i5-7300HQ CPU @ 2.50GHz
+01:05:15 [App     ] RAM: 7.66GB Physical Memory 7.45GB Virtual Memory
+01:05:15 [App     ] OS: Linux 4.10.0-28-generic (x86_64)
+01:05:15 [App     ] SSE & AVX compatible CPU & OS detected
+01:05:15 [App     ] Command line: scene_dense.mvs -w /home/greg/greg/castle_output/mvs
+01:05:15 [App     ] MapSMtoCores for SM 6.1 is undefined; default to use 128 cores/SM
+01:05:15 [App     ] CUDA device 0 initialized: GeForce GTX 1060 (compute capability 6.1; memory 5.92GB)
