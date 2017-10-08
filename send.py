@@ -5,8 +5,11 @@ import os
 
 import cv2
 
+import rospy
+import message_filters
+from sensor_msgs.msg import Image, CameraInfo
 
-
+from threading import Thread
 
 def deg_to_rad(deg):
     rad = (np.pi / 180) * deg
@@ -34,27 +37,21 @@ def rot_matrix(theta, axis):
 		Ry = np.matrix([[np.cos(theta), 0, np.sin(theta)], 
                			[0, 1, 0], 
                			[-np.sin(theta), 0, np.cos(theta)]])
-		return Rx
-	elif axis == "Ry":
+		return Ry
+	elif axis == "Rz":
 		#Rotation about z axis; xy plane unit circle
 		Rz = np.matrix([[np.cos(theta), -np.sin(theta), 0], 
                			[np.sin(theta), np.cos(theta), 0],
                			[0, 0, 1]])
-		return Rx
+		return Rz
+
+def update_ros():
+	rospy.spin()
 
 
-
-def arduino_message(rotation, translation, wait_time):
-	###Turntable change
-	ser.write(rotation)
-	time.sleep(wait_time)
-
-	###Camera height change
-	ser.write(translation)
-	time.sleep(wait_time)
-	### Add arduino call back message for debugging
-
-
+def image_callback(left, left_info, right, right_info):
+	# print('IMAGE RECEIVED!!!')
+	pass
 
 ###calculates new rotation states, changes arduino stepper motor
 ###
@@ -69,21 +66,49 @@ def arduino_message(rotation, translation, wait_time):
 ###RETURNS -  Rotation matrices for extrinsics
 def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 
+
+	rospy.init_node('ArduinoTalker', anonymous=True)
+
+	##ROS##
+	left_cam = message_filters.Subscriber('/zed/left/image_raw_color', Image)
+	left_info = message_filters.Subscriber('/zed/left/camera_info', CameraInfo)
+	right_cam = message_filters.Subscriber('/zed/right/image_raw_color', Image)
+	right_info = message_filters.Subscriber('/zed/right/camera_info', CameraInfo)
+
+	ts = message_filters.ApproximateTimeSynchronizer([left_cam, left_info, right_cam, right_info], 10, 0.1)
+	ts.registerCallback(image_callback)
+
+	update = Thread(target = update_ros)
+	update.start()
+
+	## SERIAL ##
+
 	ser = serial.Serial('/dev/ttyACM0', 9600)  # open serial communication at 9600 baud to the arduino
 	print("initializing...")
 	time.sleep(7)  # wait for initialization of the serial communication to Arduino
 
+	def arduino_message(rotation, translation, wait_time):
+		###Turntable change
+		ser.write(str(rotation))
+		time.sleep(wait_time)
+
+		###Camera height change
+		ser.write(str(translation))
+		time.sleep(wait_time)
+		### Add arduino call back message for debugging
 
 	### List of rotation matrices for pose and orientation
-	rotations = np.array([])
+	rotations = []
 
 	### matrix of height axis transformation
 	height = np.array([[0, 0, 0],
 					   [0, 0, 0],
 					   [0, 0, 1]])
 
-
+	print("ROS & SERIAL UP: Beginning Iterations ")
 	for i in range(iterations):
+
+		print('---- ITERATION %d ----' % i)
 
 		###message sent to arduino stepper motor; rotates turntable and adjust camera height
 		###send negative of angle because of turntable design
@@ -95,29 +120,33 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 		new_state = rot_matrix(deg_to_rad(theta), "Rz") + i*translation*height 
 
 		###Appending each rotation matrix for extrinsics
-		rotations.append(rotations, new_state)
+		rotations.append(rotations)
 
 
 
 		####################
-		###ROSS CODE HERE###
+		###ROS CODE HERE###
 		####################
+		
+
 
 
 		###CV code taken from trey's Faraday Future's python script
-		camera = cv2.VideoCapture(0)
-		s1, im1 = camera.read()
-		image_number = "im" + str(i) + ".jpg"
-		cv2.imwrite(image_number, im1)
-		camera.release()
-		os.rename(frame_path + image_number, dest_path + image_number)
+		# camera = cv2.VideoCapture(0)
+		# s1, im1 = camera.read()
+		# image_number = "im" + str(i) + ".jpg"
+		# cv2.imwrite(image_number, im1)
+		# camera.release()
+		# os.rename(frame_path + image_number, dest_path + image_number)
 
 
 		#####################
 		#####################
 
+	print('Done')
 
-
+	rospy.signal_shutdown("End")
+	update.join()
 	return rotations
 
 
@@ -126,7 +155,7 @@ def greg(iterations, angle, translation, wait_time, frame_path, dest_path):
 ###Rotation parameters
 theta = 30
 del_height = 5 ##5mm ###for changing scaling, adjust code in arduino stepper file
-img_num = 32
+img_num = 5
 
 
 # CONSTANTS
@@ -142,9 +171,5 @@ dest_path = '/home/trey.fortmuller/Desktop/sfm/sfm_test/sfm_in/'
 
 
 
-def main():
-	greg(img_num, theta, del_height, wait_time, frame_path, dest_path)
-
-
-
-main()
+if __name__ == '__main__':
+	greg(img_num, theta, del_height, move_wait, frame_path, dest_path)
