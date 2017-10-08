@@ -160,7 +160,16 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 		###ROS CODE HERE###
 		####################
 		
+<<<<<<< HEAD
 
+=======
+		#capture current image
+		if currRight is None or currLeft is None:
+			print("--> Some pictures missing - skipping save on iteration %d" % i)
+		else:
+			cv2.imwrite(os.path.join(image_path, "imm%03d_left.jpg" % i), currLeft)
+			cv2.imwrite(os.path.join(image_path, "imm%03d_right.jpg" % i), currRight)
+>>>>>>> 9633d2c4878ec6a91012a4c8004d351def390712
 
 
 		###CV code taken from trey's Faraday Future's python script
