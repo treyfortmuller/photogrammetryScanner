@@ -8,7 +8,8 @@ import sys
 import select
 
 
-ser = serial.Serial("/dev/cu.usbmodem1411", 9600)  # open serial communication at 9600 baud to the arduino
+ser = serial.Serial("/dev/ttyACM0", 9600)  # open serial communication at 9600 baud to the arduino
+#ser = serial.Serial("/dev/cu.usbmodem1411", 9600)  # open serial communication at 9600 baud to the arduino
 print("initializing...")
 time.sleep(4)  # wait for initialization of the serial communication to Arduino
 
