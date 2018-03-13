@@ -1,8 +1,0 @@
-07:53:59 [App     ] Build date: Oct  7 2017, 11:38:22
-07:53:59 [App     ] CPU: Intel(R) Core(TM) i5-7300HQ CPU @ 2.50GHz
-07:53:59 [App     ] RAM: 7.66GB Physical Memory 7.45GB Virtual Memory
-07:53:59 [App     ] OS: Linux 4.10.0-28-generic (x86_64)
-07:53:59 [App     ] SSE & AVX compatible CPU & OS detected
-07:54:00 [App     ] Command line: scene_dense_mesh_refine.mvs -w /home/greg/greg/output/mvs
-07:54:00 [App     ] MapSMtoCores for SM 6.1 is undefined; default to use 128 cores/SM
-07:54:00 [App     ] CUDA device 0 initialized: GeForce GTX 1060 (compute capability 6.1; memory 5.92GB)
