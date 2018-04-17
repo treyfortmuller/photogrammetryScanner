@@ -1,0 +1,43 @@
+{% set sitename = 'Tessallate' %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ sitename }}</title>
+
+<!--         <link href="/static/css/bulma.min.css" rel="stylesheet"> -->
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="title">{{ sitename }}</h1>
+            <form action="/start/" method="post">
+                <div class="field">
+                    <label class="label">Mesh Name</label>
+                    <input class="input" type="text" id="mesh_name" name="mesh_name">
+                </div>
+                <button type="submit" onclick="alert('Scanning Started')">Start</button>
+            </form>
+            <form action="/pause/" method="post">
+                <button type="submit" onclick="alert('Scanning Paused')">Pause</button>
+            </form>
+            <form action="/reset/" method="post">
+                <button type="submit" onclick="alert('Scanning Reset')">Reset</button>
+            </form>
+            <form action="/download/" method="post">
+                <button type="submit" onclick="alert('Downloading Point Cloud Mesh')">Download</button>
+            </form>
+        </div>
+
+        {% block content %}{% endblock %}
+        {% if error %}
+        <section class="section">
+            <div class="container">
+                <div class="notification is-warning">
+                    {{ error }}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </body>
+</html>
