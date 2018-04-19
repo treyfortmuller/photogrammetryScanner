@@ -1,32 +1,47 @@
-{% set sitename = 'Tessallate' %}
+{% set sitename = 'Tessellate' %}
 <!DOCTYPE html>
 <html lang="en">
+
     <head>
+		<link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='stylesheets/style.css') }}">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ sitename }}</title>
-
-<!--         <link href="/static/css/bulma.min.css" rel="stylesheet"> -->
     </head>
+
+    <header>
+        <img src="{{ url_for('static', filename='img/tessellate_logo_stacked.png') }}" alt="">
+    </header>
+
     <body>
         <div class="container">
-            <h1 class="title">{{ sitename }}</h1>
+            <!-- <h1 class="title">{{ sitename }}</h1> -->
+
+            <!-- textbox -->
             <form action="/start/" method="post">
                 <div class="field">
-                    <label class="label">Mesh Name</label>
+                    <label class="label">Enter a Mesh Name:  </label>
                     <input class="input" type="text" id="mesh_name" name="mesh_name">
                 </div>
-                <button type="submit" onclick="alert('Scanning Started')">Start</button>
+
+                <!-- submit button -->
+                <button class="btn btn-primary btn-xl" type="submit" onclick="alert('Scanning Started')">Start</button>
             </form>
+
+            <!-- other buttons -->
             <form action="/pause/" method="post">
-                <button type="submit" onclick="alert('Scanning Paused')">Pause</button>
+                <button class="btn btn-primary btn-xl" type="submit" onclick="alert('Scanning Paused')">Pause</button>
             </form>
+
             <form action="/reset/" method="post">
-                <button type="submit" onclick="alert('Scanning Reset')">Reset</button>
+                <button class="btn btn-primary btn-xl" type="submit" onclick="alert('Scanning Reset')">Reset</button>
             </form>
+
             <form action="/download/" method="post">
-                <button type="submit" onclick="alert('Downloading Point Cloud Mesh')">Download</button>
+                <button class="btn btn-primary btn-xl" type="submit" onclick="alert('Downloading Point Cloud Mesh')">Download</button>
             </form>
+	        
+
         </div>
 
         {% block content %}{% endblock %}
