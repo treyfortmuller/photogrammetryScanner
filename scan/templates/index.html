@@ -29,12 +29,8 @@
             </form>
 
             <!-- other buttons -->
-            <form action="/pause/" method="post">
-                <button class="btn btn-primary btn-xl" type="submit" onclick="alert('Scanning Paused')">Pause</button>
-            </form>
-
-            <form action="/reset/" method="post">
-                <button class="btn btn-primary btn-xl" type="submit" onclick="alert('Scanning Reset')">Reset</button>
+            <form action="/stop/" method="post">
+                <button class="btn btn-primary btn-xl" type="submit" onclick="stop()">Stop</button>
             </form>
 
             <form action="/download/" method="post">
@@ -54,5 +50,14 @@
             </div>
         </section>
         {% endif %}
+
+    <script>
+        function stop() {
+            var response = confirm("Stop current scan?");
+            alert(response);
+
+        }
+    </script>
+
     </body>
 </html>

@@ -3,13 +3,6 @@ import serial
 import time
 import os
 
-import cv2
-
-import rospy
-import message_filters
-from sensor_msgs.msg import Image, CameraInfo
-from cv_bridge import CvBridge, CvBridgeError
-
 from threading import Thread
 
 def deg_to_rad(deg):
@@ -47,28 +40,6 @@ def rot_matrix(theta, axis):
 		return Rz
 
 
-def update_ros():
-	rospy.spin()
-
-
-currLeft = None
-currRight = None
-
-def image_callback(left, left_info, right, right_info):
-	# print('IMAGE RECEIVED!!!')
-	bridge = CvBridge()
-	global currLeft
-	global currRight
-	try:
-		currLeft = bridge.imgmsg_to_cv2(left, "bgr8")
-		currRight = bridge.imgmsg_to_cv2(right, "bgr8")
-
-		# out = cv2.cvtColor(currLeft, cv2.COLOR_BGR2GRAY)
-		# cv2.imshow("Left Image", currLeft)
-		# cv2.imshow("Right Image", currRight)
-		# cv2.waitKey(1)
-	except CvBridgeError as e:
-		print(e)
 
 ### calculates new rotation states, changes arduino stepper motor
 ###
@@ -83,38 +54,23 @@ def image_callback(left, left_info, right, right_info):
 ### RETURNS -  Rotation matrices for extrinsics
 def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, dest_path):
 
-
-	rospy.init_node('ArduinoTalker', anonymous=True)
-
-	# cv2.startWindowThread()
-	# cv2.namedWindow("Left Image", cv2.WINDOW_NORMAL)
-	# cv2.namedWindow("Right Image", cv2.WINDOW_NORMAL)
-
-	##ROS##
-	left_cam = message_filters.Subscriber('/zed/left/image_raw_color', Image)
-	left_info = message_filters.Subscriber('/zed/left/camera_info', CameraInfo)
-	right_cam = message_filters.Subscriber('/zed/right/image_raw_color', Image)
-	right_info = message_filters.Subscriber('/zed/right/camera_info', CameraInfo)
-
-	ts = message_filters.ApproximateTimeSynchronizer([left_cam, left_info, right_cam, right_info], 10, 0.1)
-	ts.registerCallback(image_callback)
-
-	update = Thread(target = update_ros)
-	update.start()
-
 	## SERIAL ##
 
-	ser = serial.Serial('/dev/ttyACM0', 9600)  # open serial communication at 9600 baud to the arduino
+	ser = serial.Serial('/dev/tty.usbmodem1421', 9600)  # open serial communication at 9600 baud to the arduino
 	print("initializing...")
 	time.sleep(5)  # wait for initialization of the serial communication to Arduino
 
 	def arduino_message(rotation, translation, wait_time):
 		###Turntable change
-		ser.write(str(-rotation) + "\n")
+
+		rotation = str(-rotation) + "\n"
+		translation = str(translation) + "\n"
+
+		ser.write(rotation.encode())
 		time.sleep(wait_time)
 
 		###Camera height change
-		ser.write(str(translation) + "\n")
+		ser.write(translation.encode())
 		time.sleep(wait_time)
 		### Add arduino call back message for debugging
 
@@ -127,7 +83,7 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 	# 				   [0, 0, 0],
 	# 				   [0, 0, 1]])
 
-	print("ROS & SERIAL UP: Beginning Iterations ")
+	print("SERIAL UP: Beginning Iterations ")
 	for i in range(iterations):
 
 		print('---- ITERATION %d ----' % i)
@@ -136,52 +92,12 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 		###send negative of angle because of turntable design
 
 		#capture current image
-		if currRight is None or currLeft is None:
-			print("--> Some pictures missing - skipping save on iteration %d" % i)
-		else:
-			cv2.imwrite(os.path.join(image_path, "imm%d_left.jpg" % i), currLeft)
-			cv2.imwrite(os.path.join(image_path, "imm%d_right.jpg" % i), currRight)
 		
 		arduino_message(angle, translation, wait_time)
 
 		time.sleep(wait_stepper)
 
 
-		# ###Get rotation matrix in XY plane, and then add height translation
-		# new_state = rot_matrix(deg_to_rad(theta), "Rz") + i*translation*height 
-
-		# ###Appending each rotation matrix for extrinsics
-
-		# rotations.append(new_state)
-
-
-
-		####################
-		###ROS CODE HERE###
-		####################
-		
-<<<<<<< HEAD
-
-=======
-		#capture current image
-		if currRight is None or currLeft is None:
-			print("--> Some pictures missing - skipping save on iteration %d" % i)
-		else:
-			cv2.imwrite(os.path.join(image_path, "imm%03d_left.jpg" % i), currLeft)
-			cv2.imwrite(os.path.join(image_path, "imm%03d_right.jpg" % i), currRight)
->>>>>>> 9633d2c4878ec6a91012a4c8004d351def390712
-
-
-		###CV code taken from trey's Faraday Future's python script
-		# camera = cv2.VideoCapture(0)
-		# s1, im1 = camera.read()
-		# image_number = "im" + str(i) + ".jpg"
-		# cv2.imwrite(image_number, im1)
-		# camera.release()
-
-
-		#####################
-		#####################
 
 	#we travel iterations * translation up, and iterations * angle % 360 in angle
 	#move back!!
@@ -196,8 +112,6 @@ def greg(iterations, angle, translation, wait_time, wait_stepper, image_path, de
 	time.sleep(wait_time)
 	print('Done')
 
-	rospy.signal_shutdown("End")
-	update.join()
 	# return rotations
 
 
@@ -225,5 +139,56 @@ dest_path = '/home/greg/images/out/'
 
 
 
-if __name__ == '__main__':
-	greg(img_num, theta, del_height, move_wait, stepper_wait, image_path, dest_path)
+# if __name__ == '__main__':
+# 	greg(img_num, theta, del_height, move_wait, stepper_wait, image_path, dest_path)
+
+def connect_to_arduino(port):
+	ser = serial.Serial(port, 9600)  # open serial communication at 9600 baud to the arduino
+	print("initializing...")
+	time.sleep(5)  # wait for initialization of the serial communication to Arduino
+	return ser
+
+def arduino_message(ser, rotation=theta, translation=del_height, wait_time=move_wait):
+	###Turntable change
+
+	rotation = str(-rotation) + "\n"
+	translation = str(translation) + "\n"
+
+	ser.write(rotation.encode())
+	time.sleep(wait_time)
+
+	###Camera height change
+	ser.write(translation.encode())
+	time.sleep(wait_time)
+
+def single_iteration(ser, angle=theta, translation=del_height, dest_path=dest_path, wait_time=move_wait, wait_stepper=stepper_wait):
+
+	arduino_message(ser, angle, translation, wait_time)
+
+	### TO DO ###
+	# CODE FOR CALLING SR300 Camera
+
+	time.sleep(wait_stepper)
+	print("Finished Single Iteration\n")
+	return angle, translation
+
+def reset_scanner(ser, current_angle, current_height, offset=H_OFFSET, wait_time=move_wait):
+	print("===== MOVING DOWN =====")
+	if current_height == 0:
+		height = current_height
+	else:
+		height = - current_height + offset
+	arduino_message(ser, -(current_angle) % 360, height, wait_time)
+	time.sleep(5)
+
+	#release the stepper motors
+	ser.write("release\n".encode())
+	time.sleep(wait_time)
+	print('Scanner has been reset\n')
+
+
+
+
+
+
+
